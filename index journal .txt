@@ -1,0 +1,231 @@
+index.html
+.<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trading Journal</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap">
+<style>
+:root{
+  --bg:#f5f6f4;--surface:#ffffff;--ink:#1c2420;--muted:#66726b;--line:#dfe4e0;
+  --profit:#0f7a4a;--loss:#c23b2e;--accent:#1c2420;--accent-ink:#ffffff;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#121715;--surface:#1b221f;--ink:#e8ede9;--muted:#93a199;--line:#2c3631;
+    --profit:#4cc88a;--loss:#ff7b6b;--accent:#e8ede9;--accent-ink:#121715;color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121715;--surface:#1b221f;--ink:#e8ede9;--muted:#93a199;--line:#2c3631;
+  --profit:#4cc88a;--loss:#ff7b6b;--accent:#e8ede9;--accent-ink:#121715;color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 Manrope,system-ui,sans-serif;font-variant-numeric:tabular-nums}
+main{max-width:920px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:26px;font-weight:800;margin:0 0 2px;letter-spacing:-.02em}
+h2{font-size:17px;font-weight:800;margin:0 0 12px}
+.sub{color:var(--muted);margin:0 0 20px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:20px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.stat small{display:block;color:var(--muted);font-size:13px}
+.stat b{font-size:20px;font-weight:800}
+.pos{color:var(--profit)}.neg{color:var(--loss)}
+section{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+label{display:block;font-size:13px;font-weight:600;color:var(--muted)}
+input,select,textarea{width:100%;margin-top:4px;padding:9px 10px;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+textarea{resize:vertical;min-height:64px}
+.wide{grid-column:1/-1}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
+button{font:inherit;font-weight:600;padding:10px 16px;border-radius:8px;border:1px solid var(--ink);background:var(--accent);color:var(--accent-ink);cursor:pointer}
+button.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.preview{color:var(--muted);font-weight:600}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:13px;color:var(--muted);font-weight:600}
+td.note{white-space:normal;min-width:160px;color:var(--muted);font-size:13px}
+td button{padding:4px 10px;font-size:13px}
+.empty{color:var(--muted);padding:16px 0}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <div>
+      <h1>Trading journal</h1>
+      <p class="sub">Har trade likho, galtiyan pehchano.</p>
+    </div>
+    <button class="ghost" id="themeBtn" type="button">Theme</button>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <section>
+    <h2>Add trade</h2>
+    <div class="grid">
+      <label>Date<input type="date" id="date"></label>
+      <label>Instrument<input id="inst" placeholder="NIFTY, RELIANCE…"></label>
+      <label>Side
+        <select id="side"><option>Buy</option><option>Sell</option></select>
+      </label>
+      <label>Quantity<input type="number" id="qty" min="0" step="any" placeholder="50"></label>
+      <label>Entry price<input type="number" id="entry" step="any"></label>
+      <label>Exit price<input type="number" id="exit" step="any"></label>
+      <label>Stop-loss<input type="number" id="sl" step="any"></label>
+      <label>Strategy
+        <select id="strat"><option>Breakout</option><option>Pullback</option><option>Reversal</option><option>Scalp</option><option>Swing</option><option>Other</option></select>
+      </label>
+      <label>Mood during trade
+        <select id="mood"><option>Calm</option><option>Confident</option><option>FOMO</option><option>Fear</option><option>Greed</option><option>Revenge</option></select>
+      </label>
+      <label class="wide">Notes: kya sahi gaya, kya galat?<textarea id="notes"></textarea></label>
+    </div>
+    <div class="row">
+      <button type="button" id="add">Save trade</button>
+      <span class="preview" id="preview"></span>
+    </div>
+  </section>
+
+  <section>
+    <div class="top">
+      <h2>All trades</h2>
+      <button class="ghost" type="button" id="copy">Copy as CSV</button>
+    </div>
+    <div class="scroll"><table>
+      <thead><tr><th>Date</th><th>Instrument</th><th>Side</th><th>Qty</th><th>Entry</th><th>Exit</th><th>P&amp;L</th><th>Strategy</th><th>Mood</th><th>Notes</th><th></th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+    <p class="empty" id="empty">Abhi koi trade nahi hai. Upar se pehla trade add karo.</p>
+  </section>
+
+  <section>
+    <h2>Mood-wise P&amp;L</h2>
+    <div id="moods" class="empty">Trades add karne ke baad yahan dikhega.</div>
+  </section>
+</main>
+
+<script>
+(function(){
+  var KEY='trading-journal-v1';
+  var trades=[];
+  var $=function(id){return document.getElementById(id)};
+  var fmt=function(n){return (n<0?'-':'')+'₹'+Math.abs(n).toLocaleString('en-IN',{maximumFractionDigits:2})};
+  var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+
+  function load(){
+    try{var raw=localStorage.getItem(KEY);if(raw)trades=JSON.parse(raw)||[]}catch(e){trades=[]}
+  }
+  function save(){
+    try{localStorage.setItem(KEY,JSON.stringify(trades))}catch(e){}
+  }
+  function pnl(side,qty,en,ex){return (side==='Buy'?ex-en:en-ex)*qty}
+
+  function cls(n){return n>0?'pos':(n<0?'neg':'')}
+
+  function render(){
+    var total=0,wins=0,winSum=0,lossSum=0,losses=0;
+    trades.forEach(function(t){
+      total+=t.pnl;
+      if(t.pnl>0){wins++;winSum+=t.pnl}else if(t.pnl<0){losses++;lossSum+=t.pnl}
+    });
+    var n=trades.length;
+    var rate=n?Math.round(wins/n*100)+'%':'–';
+    var avgW=wins?fmt(winSum/wins):'–', avgL=losses?fmt(lossSum/losses):'–';
+    $('stats').innerHTML=
+      '<div class="stat"><small>Total P&amp;L</small><b class="'+cls(total)+'">'+fmt(total)+'</b></div>'+
+      '<div class="stat"><small>Trades</small><b>'+n+'</b></div>'+
+      '<div class="stat"><small>Win rate</small><b>'+rate+'</b></div>'+
+      '<div class="stat"><small>Avg win</small><b class="pos">'+avgW+'</b></div>'+
+      '<div class="stat"><small>Avg loss</small><b class="neg">'+avgL+'</b></div>';
+
+    var sorted=trades.slice().sort(function(a,b){return b.date<a.date?-1:(b.date>a.date?1:b.id-a.id)});
+    $('rows').innerHTML=sorted.map(function(t){
+      return '<tr><td>'+esc(t.date)+'</td><td>'+esc(t.inst)+'</td><td>'+esc(t.side)+'</td><td>'+t.qty+'</td><td>'+t.entry+'</td><td>'+t.exit+
+        '</td><td class="'+cls(t.pnl)+'"><b>'+fmt(t.pnl)+'</b></td><td>'+esc(t.strat)+'</td><td>'+esc(t.mood)+'</td><td class="note">'+esc(t.notes||'')+
+        '</td><td><button class="ghost" type="button" data-del="'+t.id+'">Delete</button></td></tr>';
+    }).join('');
+    $('empty').style.display=n?'none':'block';
+
+    var by={};
+    trades.forEach(function(t){var m=by[t.mood]||(by[t.mood]={p:0,c:0});m.p+=t.pnl;m.c++});
+    var keys=Object.keys(by);
+    if(keys.length){
+      $('moods').className='';
+      $('moods').innerHTML='<div class="scroll"><table style="min-width:0"><thead><tr><th>Mood</th><th>Trades</th><th>P&amp;L</th></tr></thead><tbody>'+
+        keys.sort(function(a,b){return by[a].p-by[b].p}).map(function(k){
+          return '<tr><td>'+esc(k)+'</td><td>'+by[k].c+'</td><td class="'+cls(by[k].p)+'"><b>'+fmt(by[k].p)+'</b></td></tr>'}).join('')+
+        '</tbody></table></div>';
+    }else{
+      $('moods').className='empty';
+      $('moods').textContent='Trades add karne ke baad yahan dikhega.';
+    }
+  }
+
+  function preview(){
+    var q=parseFloat($('qty').value),en=parseFloat($('entry').value),ex=parseFloat($('exit').value);
+    if(isFinite(q)&&isFinite(en)&&isFinite(ex)){
+      var p=pnl($('side').value,q,en,ex);
+      $('preview').innerHTML='P&amp;L: <span class="'+cls(p)+'">'+fmt(p)+'</span>';
+    }else $('preview').textContent='';
+  }
+
+  ['qty','entry','exit','side'].forEach(function(id){$(id).addEventListener('input',preview)});
+
+  $('add').addEventListener('click',function(){
+    var q=parseFloat($('qty').value),en=parseFloat($('entry').value),ex=parseFloat($('exit').value);
+    var inst=$('inst').value.trim();
+    if(!inst||!isFinite(q)||!isFinite(en)||!isFinite(ex)){
+      $('preview').textContent='Instrument, quantity, entry aur exit zaroori hain.';return;
+    }
+    var side=$('side').value;
+    trades.push({
+      id:Date.now(),date:$('date').value||new Date().toISOString().slice(0,10),
+      inst:inst,side:side,qty:q,entry:en,exit:ex,sl:$('sl').value,
+      strat:$('strat').value,mood:$('mood').value,notes:$('notes').value.trim(),
+      pnl:pnl(side,q,en,ex)
+    });
+    save();
+    ['inst','qty','entry','exit','sl','notes'].forEach(function(id){$(id).value=''});
+    $('preview').textContent='Trade saved.';
+    render();
+  });
+
+  $('rows').addEventListener('click',function(e){
+    var id=e.target.getAttribute&&e.target.getAttribute('data-del');
+    if(!id)return;
+    trades=trades.filter(function(t){return String(t.id)!==id});
+    save();render();
+  });
+
+  $('copy').addEventListener('click',function(){
+    var head='date,instrument,side,qty,entry,exit,stoploss,pnl,strategy,mood,notes';
+    var lines=trades.map(function(t){
+      return [t.date,t.inst,t.side,t.qty,t.entry,t.exit,t.sl,t.pnl,t.strat,t.mood,'"'+(t.notes||'').replace(/"/g,'""')+'"'].join(',');
+    });
+    var csv=[head].concat(lines).join('\n');
+    var done=function(){$('copy').textContent='Copied';setTimeout(function(){$('copy').textContent='Copy as CSV'},1500)};
+    try{navigator.clipboard.writeText(csv).then(done,function(){})}catch(e){}
+  });
+
+  $('themeBtn').addEventListener('click',function(){
+    var r=document.documentElement;
+    var dark=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme: dark)').matches);
+    r.setAttribute('data-theme',dark?'light':'dark');
+  });
+
+  $('date').value=new Date().toISOString().slice(0,10);
+  load();render();
+})();
+</script>
+</body>
+</html>
